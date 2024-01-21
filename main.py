@@ -48,8 +48,8 @@ def encodeDomain(domain):
 
 
 
-# Given full buffer and index i, return domain name  starting at index i
 def getDomain(buf, i):
+    """Given full buffer and index i, return domain name  starting at index i"""
     decoded_domain = ""
     while i < len(buf):
         if isPointer(buf[i:]):
