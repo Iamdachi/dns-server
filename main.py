@@ -115,14 +115,6 @@ def main():
     while True:
         try:
              buf, source = udp_socket.recvfrom(512)
-             print("BUFF RECIEVE", buf)
-             
-             '''
-             udp_socket.sendto(buf, forward_addr)
-             resp_buf, forward_addr = udp_socket.recvfrom(512)
-             print("resolver responded with answer: ", resp_buf)
-             getAnswerOffset(resp_buf)
-             '''
              #parse header
              ID = struct.unpack('!H', buf[:2])[0]
              byte = struct.unpack('!B', buf[2:3])[0]
@@ -134,13 +126,6 @@ def main():
               
              #parse query
              domains, flags = getQuestions(buf, QDcount)
-             print("HEREE")
-             
-             print("flags", flags)
-             '''TODO: for each domain make a DNS Message and forward it to resolver'''
-             
-             '''TODO: get answers and concat them; return it to sender'''
-             
              
              #Create Question
              Type = (1).to_bytes(2, byteorder='big')
@@ -172,8 +157,7 @@ def main():
                  udp_socket.sendto(frwd, forward_addr)
                  
                  new_buf, new_source = udp_socket.recvfrom(512)
-                 print("response from big daddy forwarder:", new_buf)
-                 
+
                  if QDcount == 1:
                      ## idgaf directly send this shit back
                      udp_socket.sendto(new_buf, source)
@@ -181,24 +165,12 @@ def main():
                  else:
                      # update RR
                      RR += getAnswer(new_buf)
-                     print("getting answer from forwarder:", getAnswer(new_buf))
-             
              
              answer_msg = DNSMessage(id=ID, qr=1, opcode=opcode, aa=0, tc=0, rd=rd, ra=0, z=0, rcode=rcode, qdcount=QDcount, ancount=QDcount, nscount=0, arcount=0, questions=Questions, answers=RR)
              
              response = pack_dns_message(answer_msg)
              udp_socket.sendto(response, source)
-             
-             
-             
-             # Send final Request
-             # change handling of answers######
-             '''
-             answer_msg = DNSMessage(id=ID, qr=1, opcode=opcode, aa=0, tc=0, rd=rd, ra=0, z=0, rcode=rcode, qdcount=QDcount, ancount=0, nscount=0, arcount=0, questions=b'', answers=b'')
-             
-             response = pack_dns_message(answer_msg)
-             udp_socket.sendto(response, source)
-             print("end") '''
+
         except Exception as e:
              print(f"Error receiving data: {e}")
              break
@@ -206,42 +178,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-'''
-#Create Question
-             Type = (1).to_bytes(2, byteorder='big')
-
-             # Record class is "IN", represented as 0x0001 in 2-byte integer format
-             Class = (1).to_bytes(2, byteorder='big')  
-             
-             Questions = b''
-             RR = b''
-             
-             #answer constants
-             Answer_type = struct.pack('!H', 1)
-             Answer_class = struct.pack('!H', 1)
-             Answer_TTL = struct.pack('!I', 60)
-             Answer_length = struct.pack('>H', 4)
-             Answer_data = struct.pack('!BBBB', 8, 8, 8, 8)
-             
-
-             for domain in domains:
-                 Name = encodeDomain(domain)
-                 Question = Name + Type + Class  # make question
-                 Questions += Question # I will need this for later
-                 
-                 Answer_name = encodeDomain(domain)
-                 RR = Answer_name + Answer_type + Answer_class + Answer_TTL + Answer_length + Answer_data
-                 RR = RR+RR
-             
-             
-             # Send final Request
-             # change handling of answers######
-             answer_msg = DNSMessage(id=ID, qr=1, opcode=opcode, aa=0, tc=0, rd=rd, ra=0, z=0, rcode=rcode, qdcount=QDcount, ancount=QDcount, nscount=0, arcount=0, questions=Questions, answers=RR)
-             
-             response = pack_dns_message(answer_msg)
-             udp_socket.sendto(response, source)
-        except Exception as e:
-             print(f"Error receiving data: {e}")
-             break
-
-'''
